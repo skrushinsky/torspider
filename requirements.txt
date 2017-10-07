@@ -1,0 +1,7 @@
+tornado
+pycurl
+bs4
+lxml
+motor
+langdetect
+python-dateutil
