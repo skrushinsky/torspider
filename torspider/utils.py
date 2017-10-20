@@ -1,25 +1,40 @@
 import os
-from tornado.iostream import PipeIOStream
+import hashlib
+from io import BytesIO
+from PIL import Image
+import logging
 
-class SafeFileIOStream:
-    """Asynchroneous file writer.
 
-    Usage example:
+def make_digest(s):
+    m = hashlib.md5()
+    m.update(s.encode('utf-8'))
+    return m.hexdigest()
 
-    with SafeFileIOStream('/tmp/test.txt') as stream:
-        await stream.write(b'hello world')
-    """
-    def __init__(self, fname):
-        self.fname = fname
 
-    def __enter__(self):
-        # Create file
-        os.open(self.fname, os.O_CREAT)
-        # Create stream
-        fd = os.open(self.fname, os.O_WRONLY)
-        self.stream = PipeIOStream(fd)
-        return self.stream
+def ensure_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # Close stream
-        self.stream.close()
+def save_screenshot(imgdata, url=None, screenshots_dir=None):
+    img = Image.open(BytesIO(imgdata))
+    digest = make_digest(url)
+    fname = '{}.png'.format(digest[2:])
+    di = os.path.join(screenshots_dir, digest[:2])
+    path = os.path.join(di, fname)
+    ensure_dir(di)
+    assert not os.path.isfile(path), 'File %s exists!' % path
+    img.save(path)
+    logging.info('Screenshot for %s saved as %s.', url, path)
+    return os.path.join(digest[:2], fname)
+
+
+def iter_file(path):
+    '''Open a text file, read it line by line, yielding
+    stripped line provided that it is not empy and does not start with '#'
+    '''
+    with open(path, mode='rt') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            yield line

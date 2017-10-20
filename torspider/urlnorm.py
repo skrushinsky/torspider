@@ -5,11 +5,11 @@ urlnorm.py - URL normalisation routines
 This is clone of http://github.com/jehiah/urlnorm library adapted to Python 3.
 '''
 
-from urllib.parse import urlparse
-from urllib.parse import unquote
+from urllib.parse import urlparse, urlunparse, unquote
 import re
 import idna
 import logging
+from pprint import pformat
 
 _collapse = re.compile('([^/]+/\.\./?|/\./|//|/\.$|/\.\.$|^\.)')
 _server_authority = re.compile('^(?:([^\@]+)\@)?([^\:]+)(?:\:(.+))?$')
@@ -43,6 +43,8 @@ def norm(url, domain=None):
             authority = "%s:%s" % (authority, port)
     else:
         authority = domain.lower()
+    assert authority, '%s: No authority!' % url
+
     if scheme in _relative_schemes:
         last_path = path
         while 1:
@@ -50,13 +52,26 @@ def norm(url, domain=None):
             if last_path == path:
                 break
             last_path = path
+
     path = unquote(path)
     try:
         authority = idna.decode(authority)
     except Exception as ex:
         logging.warn(ex)
-    return (scheme, authority, path, parameters, query, fragment)
 
+    parts = (scheme, authority, path, parameters, query, "")
+    assert not join_parts(parts).startswith('http://http://'), 'Error parsing <%s> (%s)' % (url, pformat(parts))
+    return parts
 
 def join_parts(url):
-    return '{}://{}'.format(url[0] , ''.join(url[1:]))
+    return urlunparse(url)
+
+
+def first_level_domain(full_domain):
+    return '.'.join(full_domain.split('.')[-2:])
+
+def get_domain(url):
+    return urlparse(url)[1]
+
+def get_first_level_domain(url):
+    return first_level_domain(get_domain(url))

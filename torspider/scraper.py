@@ -1,19 +1,23 @@
 import logging
 import re
+from urllib.parse import urlparse, urlunparse
+from itertools import tee, filterfalse
 
-from tornado import httpclient
-from tornado.httputil import HTTPHeaders
-from tornado.options import options
 
 from dateutil.parser import parse as parse_datetime
 from bs4 import BeautifulSoup as Soup, Comment
 from langdetect import detect
 
-from urlnorm import norm, join_parts
+from tornado import httpclient
+from tornado.httputil import HTTPHeaders
+from tornado.options import options
+
+from urlnorm import norm, join_parts, get_first_level_domain
+
 
 ALLOW_SCHEMES = ('http', 'https')
 ALLOWED_TYPES = ('text/html')
-ALLOWED_LANGS = ('ru', 'en')
+ALLOWED_LANGS = ('ru', 'en', 'Russian', 'ru-RU')
 SAVE_HEADERS = (
     'Content-Encoding', 'Content-Language', 'Content-Length', 'Content-Location',
     'Content-MD5', 'Content-Type', 'Date', 'ETag', 'Expires', 'Last-Modified',
@@ -22,6 +26,7 @@ SAVE_HEADERS = (
 )
 MAX_CONTENT_SIZE = 1024  # Kb
 DEFAULT_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:28.0) Gecko/20100101 Firefox/28.0'
+DEFAULT_TIMEOUT = 20
 DEFAULT_HEADERS = HTTPHeaders({
     'Accept': ','.join(ALLOWED_TYPES),
     'Accept-Charset': 'utf-8, windows-1251;q=0.5, koi8-r;q=0.3, *;q=0.3',
@@ -36,6 +41,10 @@ httpclient.AsyncHTTPClient.configure(
 
 # remove these tags, complete with contents.
 SKIP_TAGS = ("script", "style", "form", "input")
+
+
+def is_inner_link(url, page):
+    return get_first_level_domain(url) == get_first_level_domain(page.base)
 
 class Page():
     """
@@ -75,7 +84,8 @@ class Page():
                 self._base = self.soup.base.get('href')
             if not self._base:
                 logging.debug('No <base> header. Using response domain name')
-                self._base = norm(self.response.effective_url)[1]
+                parts = norm(self.response.effective_url)
+                self._base = urlunparse((parts[0], parts[1], '/', '', '', ''))
         return self._base
 
     @property
@@ -88,7 +98,7 @@ class Page():
                 logging.debug('Page title not found. Searching headings...')
                 body = self.soup.body
                 for i in range(5):
-                    h = body.find('h{%d}' % (i+1))
+                    h = body.find('h{}'.format(i+1))
                     if h:
                         self._title = h.string
                         break
@@ -146,12 +156,16 @@ class Page():
         return self._language
 
     def _iter_links(self):
+        domain = urlparse(self.base)[1]
         for a in self.soup.find_all('a', href=True):
-            url = norm(a['href'], self.base)
-            if not url[0] in ALLOW_SCHEMES:
-                logging.warning('Skipping scheme <%s>', url[0])
-            else:
-                yield join_parts(url)
+            try:
+                url = norm(a['href'], domain)
+                if not url[0] in ALLOW_SCHEMES:
+                    logging.debug('Skipping scheme <%s>', url[0])
+                else:
+                    yield join_parts(url)
+            except Exception as ex:
+                logging.warn(ex)
 
     @property
     def links(self):
@@ -159,6 +173,12 @@ class Page():
         if self._links is None:
             self._links = {url for url in self._iter_links()}
         return self._links
+
+    def partition_links(self):
+        """Return inner and outer links as two separate lists."""
+        t1, t2 = tee(self.links)
+        pred = lambda x: is_inner_link(x, self)
+        return list(filter(pred, t1)), list(filterfalse(pred, t2))
 
     def _parse_header(self, k, v):
         lk = k.lower()
@@ -173,18 +193,17 @@ class Page():
         """Some usefull data from HTTP response headers"""
         if self._headers is None:
             self._headers = {
-                k: self._parse_header(k, v) for (k, v) in sorted(
-                    self.response.headers.get_all())
+                k: self._parse_header(k, v)
+                for (k, v) in sorted(self.response.headers)
                 if k in SAVE_HEADERS
             }
         return self._headers
-
 
     def as_dict(self):
         report = {}
         if self.title:
             report['title'] = self.title
-        if self.title:
+        if self.text:
             report['text'] = self.text
         if self.meta:
             report['meta'] = self.meta
@@ -197,15 +216,13 @@ class Page():
 
         return report
 
-class Client():
+
+class HTTPClient:
     """Asyncroneous HTTP client.
     """
     def __init__(self):
         self.client = httpclient.AsyncHTTPClient()
-        self.req_options = dict(
-            headers = DEFAULT_HEADERS,
-            validate_cert = False,
-        )
+        self.req_options = dict(headers = DEFAULT_HEADERS)
         if options.proxy:
             logging.debug('Using proxy: %s', options.proxy)
             h, p = options.proxy.split(':')
@@ -214,10 +231,11 @@ class Client():
         else:
             logging.debug('Working without proxy')
 
-        logging.debug('Using timeout: %.1f', options.timeout)
         self.req_options['connect_timeout'] = options.connect_timeout
         self.req_options['request_timeout'] = options.request_timeout
         self.req_options['validate_cert'] = options.validate_cert
+        #self.req_options['ca_certs'] = None
+        #self.ssl_options = {"ssl_version": ssl.PROTOCOL_TLSv1}
 
     def _validate_headers(self, headers):
         """If anything is wrong with HTTP headers, raise AssertionError."""
@@ -238,9 +256,16 @@ class Client():
         logging.debug('Headers OK.')
 
 
-    async def visit(self, url):
-        req = httpclient.HTTPRequest(url, **self.req_options)
-        res = await self.client.fetch(req)
-        logging.info('%s: %s - %s', res.effective_url, res.code, res.reason)
-        self._validate_headers(res.headers)
-        return res
+    async def visit(self, url, count=0):
+        logging.info('Fetching %s...', url)
+        try:
+            req = httpclient.HTTPRequest(url, **self.req_options)
+        except UnicodeEncodeError as ex:
+            logging.error(ex)
+            if count > 1:
+                return self.visit(url.encode('idna'), count=count+1)
+        else:
+            res = await self.client.fetch(req)
+            logging.info('%s: %s - %s', res.effective_url, res.code, res.reason)
+            self._validate_headers(res.headers)
+            return res
