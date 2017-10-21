@@ -17,7 +17,7 @@ from selenium.common.exceptions import TimeoutException
 
 from scraper import HTTPClient, get_screenshot, Page
 from urlnorm import norm, join_parts, first_level_domain
-import db
+import tasks
 import utils
 
 THREAD_POOL_SIZE = 64
@@ -46,7 +46,7 @@ async def add_task(redis, url):
     logging.info('Added task <%s>', normal)
 
 
-class Worker(db.RedisClient, HTTPClient):
+class Worker(tasks.RedisClient, HTTPClient):
     executor = ThreadPoolExecutor(THREAD_POOL_SIZE)
 
 

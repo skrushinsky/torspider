@@ -10,7 +10,7 @@ from tornado import gen
 from tornado.options import define, options, parse_command_line, parse_config_file
 from tornado.log import enable_pretty_logging
 from tornado.ioloop import IOLoop
-import db
+import tasks
 
 ROOTDIR = abspath(dirname(dirname(__file__)))
 sys.path.append(ROOTDIR)
@@ -33,8 +33,8 @@ define("workers", type=int, default=30, help='Workers count')
 io_loop = IOLoop.current()
 
 async def main():
-    db.RedisClient.setup()
-    redis = db.RedisClient()
+    tasks.RedisClient.setup()
+    redis = tasks.RedisClient()
     if options.clear:
         await gen.Task(redis.clear_all)
 
