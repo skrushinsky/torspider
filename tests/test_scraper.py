@@ -11,7 +11,7 @@ ROOTDIR = dirname(dirname(dirname(__file__)))
 sys.path.append(ROOTDIR)
 
 # import application packages
-from paparazzi import scraper
+from torspider import scraper
 
 define("proxy", type=str, default=None)
 define("connect_timeout", type=float, default=10.0, help='Connect timeout')
