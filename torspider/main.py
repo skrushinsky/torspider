@@ -10,7 +10,7 @@ from tornado import gen
 from tornado.options import define, options, parse_command_line, parse_config_file
 from tornado.log import enable_pretty_logging
 from tornado.ioloop import IOLoop
-import tasks
+import mixins
 
 ROOTDIR = abspath(dirname(dirname(__file__)))
 sys.path.append(ROOTDIR)
@@ -22,6 +22,7 @@ from utils import iter_file
 enable_pretty_logging()
 
 define("proxy", type=str, default='localhost:8118')
+define("mongodb", type=str, default='mongodb://localhost:27017/spider', help='MongoDB connect string')
 define("connect_timeout", type=float, default=10.0, help='Connect timeout')
 define("request_timeout", type=float, default=20.0, help='Request timeout')
 define("validate_cert", type=bool, default=False, help='Validate certificate')
@@ -33,8 +34,8 @@ define("workers", type=int, default=30, help='Workers count')
 io_loop = IOLoop.current()
 
 async def main():
-    tasks.RedisClient.setup()
-    redis = tasks.RedisClient()
+    mixins.RedisClient.setup()
+    redis = mixins.RedisClient()
     if options.clear:
         await gen.Task(redis.clear_all)
 

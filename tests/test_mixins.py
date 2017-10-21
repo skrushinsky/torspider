@@ -10,7 +10,7 @@ ROOTDIR = dirname(dirname(dirname(__file__)))
 sys.path.append(ROOTDIR)
 
 # import application packages
-from torspider import tasks
+from torspider import mixins
 
 DOMAINS_SET = "torspider:test:domains"
 TASKS_LIST = "torspider:test:tasks"
@@ -24,7 +24,7 @@ class SaveDomainCase(testing.AsyncTestCase):
     def setUp(self):
         logging.info('setUp')
         super(SaveDomainCase, self).setUp()
-        tasks.RedisClient.setup(known_domains=DOMAINS_SET, io_loop=self.io_loop)
+        mixins.RedisClient.setup(known_domains=DOMAINS_SET, io_loop=self.io_loop)
 
     def tearDown(self):
         super(SaveDomainCase, self).tearDown()
@@ -34,7 +34,7 @@ class SaveDomainCase(testing.AsyncTestCase):
 
     @testing.gen_test
     def test_save_domain(self):
-        res = yield gen.Task(tasks.RedisClient().save_domain, 'tornadoweb.org')
+        res = yield gen.Task(mixins.RedisClient().save_domain, 'tornadoweb.org')
         self.assertEqual(res, 1)
 
 
@@ -44,7 +44,7 @@ class CheckDomainCase(testing.AsyncTestCase):
         logging.info('setUp')
         redis.sadd(DOMAINS_SET, 'tornadoweb.org')
         super(CheckDomainCase, self).setUp()
-        tasks.RedisClient.setup(known_domains=DOMAINS_SET, io_loop=self.io_loop)
+        mixins.RedisClient.setup(known_domains=DOMAINS_SET, io_loop=self.io_loop)
 
     def tearDown(self):
         super(CheckDomainCase, self).tearDown()
@@ -54,12 +54,12 @@ class CheckDomainCase(testing.AsyncTestCase):
 
     @testing.gen_test
     def test_is_known_domain(self):
-        res = yield gen.Task(tasks.RedisClient().is_known_domain, 'tornadoweb.org')
+        res = yield gen.Task(mixins.RedisClient().is_known_domain, 'tornadoweb.org')
         self.assertTrue(res)
 
     @testing.gen_test
     def test_remove_domain(self):
-        res = yield gen.Task(tasks.RedisClient().remove_domain, 'tornadoweb.org')
+        res = yield gen.Task(mixins.RedisClient().remove_domain, 'tornadoweb.org')
         self.assertEqual(1, res)
 
 
@@ -68,7 +68,7 @@ class PutTaskCase(testing.AsyncTestCase):
     def setUp(self):
         logging.info('setUp')
         super(PutTaskCase, self).setUp()
-        tasks.RedisClient.setup(tasks_queue=TASKS_LIST, io_loop=self.io_loop)
+        mixins.RedisClient.setup(tasks_queue=TASKS_LIST, io_loop=self.io_loop)
 
     def tearDown(self):
         super(PutTaskCase, self).tearDown()
@@ -78,7 +78,7 @@ class PutTaskCase(testing.AsyncTestCase):
 
     @testing.gen_test
     def test_put(self):
-        yield gen.Task(tasks.RedisClient().put_task, 'http://tornadoweb.org/')
+        yield gen.Task(mixins.RedisClient().put_task, 'http://tornadoweb.org/')
         self.assertEqual(redis.llen(TASKS_LIST), 1)
 
 
@@ -89,7 +89,7 @@ class GetTaskCase(testing.AsyncTestCase):
         logging.info('setUp')
         redis.lpush(TASKS_LIST, 'http://tornadoweb.org/')
         super(GetTaskCase, self).setUp()
-        tasks.RedisClient.setup(tasks_queue=TASKS_LIST, io_loop=self.io_loop)
+        mixins.RedisClient.setup(tasks_queue=TASKS_LIST, io_loop=self.io_loop)
 
     def tearDown(self):
         super(GetTaskCase, self).tearDown()
@@ -99,13 +99,13 @@ class GetTaskCase(testing.AsyncTestCase):
 
     @testing.gen_test
     def test_is_known_domain(self):
-        res = yield gen.Task(tasks.RedisClient().get_task)
+        res = yield gen.Task(mixins.RedisClient().get_task)
         self.assertEqual('http://tornadoweb.org/', res)
 
 
     @testing.gen_test
     def test_count(self):
-        res = yield gen.Task(tasks.RedisClient().tasks_count)
+        res = yield gen.Task(mixins.RedisClient().tasks_count)
         self.assertEqual(1, res)
 
 
@@ -114,7 +114,7 @@ class SaveReportCase(testing.AsyncTestCase):
     def setUp(self):
         logging.info('setUp')
         super(SaveReportCase, self).setUp()
-        tasks.RedisClient.setup(reports_hash=REPORTS_HASH, io_loop=self.io_loop)
+        mixins.RedisClient.setup(reports_hash=REPORTS_HASH, io_loop=self.io_loop)
 
     def tearDown(self):
         super(SaveReportCase, self).tearDown()
@@ -124,7 +124,7 @@ class SaveReportCase(testing.AsyncTestCase):
 
     @testing.gen_test
     def test_save_report(self):
-        res = yield gen.Task(tasks.RedisClient().save_report, 'http://tornadoweb.org/', 'bar')
+        res = yield gen.Task(mixins.RedisClient().save_report, 'http://tornadoweb.org/', 'bar')
         self.assertEqual(1, res)
 
 
@@ -134,7 +134,7 @@ class LoadReportCase(testing.AsyncTestCase):
         logging.info('setUp')
         redis.hset(REPORTS_HASH, 'http://tornadoweb.org/', 'foo')
         super(LoadReportCase, self).setUp()
-        tasks.RedisClient.setup(reports_hash=REPORTS_HASH, io_loop=self.io_loop)
+        mixins.RedisClient.setup(reports_hash=REPORTS_HASH, io_loop=self.io_loop)
 
     def tearDown(self):
         super(LoadReportCase, self).tearDown()
@@ -144,12 +144,12 @@ class LoadReportCase(testing.AsyncTestCase):
 
     @testing.gen_test
     def test_load_report(self):
-        res = yield gen.Task(tasks.RedisClient().load_report, 'http://tornadoweb.org/')
+        res = yield gen.Task(mixins.RedisClient().load_report, 'http://tornadoweb.org/')
         self.assertEqual('foo', res)
 
     @testing.gen_test
     def test_reports_count(self):
-        res = yield gen.Task(tasks.RedisClient().reports_count)
+        res = yield gen.Task(mixins.RedisClient().reports_count)
         self.assertEqual(1, res)
 
 def all():
