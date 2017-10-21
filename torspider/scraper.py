@@ -12,7 +12,7 @@ from tornado import httpclient
 from tornado.httputil import HTTPHeaders
 from tornado.options import options
 
-from urlnorm import norm, join_parts, get_first_level_domain
+from .urlnorm import norm, join_parts, get_first_level_domain
 
 
 ALLOW_SCHEMES = ('http', 'https')
