@@ -10,6 +10,8 @@ TASKS_QUEUE = 'torspider:tasks'
 REPORTS_HASH = 'torspider:reports'
 
 class RedisClient:
+    """Class responsible for requests to Redis.
+    """
     pool = None
 
     @classmethod
