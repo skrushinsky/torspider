@@ -10,11 +10,11 @@ ROOTDIR = dirname(dirname(dirname(__file__)))
 sys.path.append(ROOTDIR)
 
 # import application packages
-from paparazzi import db
+from torspider import db
 
-DOMAINS_SET = "paparazzi:test:domains"
-TASKS_LIST = "paparazzi:test:tasks"
-REPORTS_HASH = "paparazzi:test:reports"
+DOMAINS_SET = "torspider:test:domains"
+TASKS_LIST = "torspider:test:tasks"
+REPORTS_HASH = "torspider:test:reports"
 
 redis = pyredis.StrictRedis()
 
