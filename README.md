@@ -72,8 +72,8 @@ $ python torspider/main.py --help
 
 ## TODOs:
 
-#. More settings should be configurable.
-#. Throttling (tasks queue should be )
-#. Results should be handled by plugins, e.g.: saving reports to MongoDB.
-#. Handle additional content types.
-#. GUI.
+1. More settings should be configurable.
+1. Throttling (tasks queue should be )
+1. Results should be handled by plugins, e.g.: saving reports to MongoDB.
+1. Handle additional content types.
+1. GUI.
