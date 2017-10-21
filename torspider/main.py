@@ -26,7 +26,7 @@ define("mongodb", type=str, default='mongodb://localhost:27017/torspider', help=
 define("connect_timeout", type=float, default=10.0, help='Connect timeout')
 define("request_timeout", type=float, default=20.0, help='Request timeout')
 define("validate_cert", type=bool, default=False, help='Validate certificate')
-define("max_pages", type=int, default=0, help='Maximum pages, 0 - no limit')
+define("max_pages", type=int, default=100, help='Maximum pages, 0 - no limit')
 define("seeds", type=str, default='conf/seeds.txt', help='Path to list of initial URLs')
 define("clear_tasks", type=bool, default=False, help='Clear existing tasks queue')
 define("workers", type=int, default=30, help='Workers count')
