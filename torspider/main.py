@@ -27,7 +27,7 @@ define("connect_timeout", type=float, default=10.0, help='Connect timeout')
 define("request_timeout", type=float, default=20.0, help='Request timeout')
 define("validate_cert", type=bool, default=False, help='Validate certificate')
 define("max_pages", type=int, default=0, help='Maximum pages, 0 - no limit')
-define("seeds", type=str,  multiple=True, default='conf/seeds.txt', help='Path to list of initial URLs')
+define("seeds", type=str, default='conf/seeds.txt', help='Path to list of initial URLs')
 define("clear_tasks", type=bool, default=False, help='Clear existing tasks queue')
 define("workers", type=int, default=30, help='Workers count')
 define("follow_outer_links", type=bool, default=True, help='Follow outer links')
@@ -39,20 +39,22 @@ async def main():
     mixins.MongoClient.setup(options.mongodb)
     mixins.RedisClient.setup()
     redis = mixins.RedisClient()
-    if options.clear:
-        await gen.Task(redis.clear_all)
+    mongo = mixins.MongoClient()
+    if options.clear_tasks:
+        await redis.clear_all()
 
     for seed in iter_file(options.seeds):
-        logging.info('Adding seed: %s', seed)
         await add_task(redis, seed.strip())
+        logging.info('Added seed: %s.', seed)
 
     for i in range(options.workers):
         w = Worker('Worker-%d' % (i+1))
-        io_loop.spawn_callback(w.run)
+        io_loop.spawn_callback(w)
 
+    logging.info('Waiting...')
     while True:
-        tasks_count = await gen.Task(redis.tasks_count)
-        pages_count = await gen.Task(redis.reports_count)
+        tasks_count = await redis.tasks_count()
+        pages_count = await mongo.reports_count()
         #logging.info('Pages: %d, Tasks: %d', pages_count, tasks_count)
         if tasks_count > 0 and pages_count >= options.max_pages:
             logging.warn('Pages limit (%d) exceeded. Exiting...', options.max_pages)

@@ -8,7 +8,7 @@ import motor
 import pymongo
 
 MAX_CONNECTIONS = 20
-KNOWN_DOMAINS = 'torspider:known'
+KNOWN_URLS = 'torspider:known'
 TASKS_QUEUE = 'torspider:tasks'
 REPORTS_COLLECTION = 'reports'
 
@@ -19,72 +19,59 @@ class RedisClient:
 
     @classmethod
     def setup(cls,
-              known_domains=KNOWN_DOMAINS,
+              known_urls=KNOWN_URLS,
               tasks_queue=TASKS_QUEUE,
               max_connections=MAX_CONNECTIONS,
               **conn_args):
         cls.pool = ConnectionPool(max_connections=max_connections, **conn_args)
-        cls.known_domains = known_domains
+        cls.known_urls = known_urls
         cls.tasks = tasks_queue
+        logging.debug('RedisClient ready.')
 
 
-    @gen.engine
-    def save_domain(self, domain_name, callback=None):
+    async def save_visit(self, url):
         client = Client(connection_pool=self.pool)
-        res = yield gen.Task(client.sadd, self.known_domains, domain_name)
-        callback(res)
-        yield gen.Task(client.disconnect)
+        res = await gen.Task(client.sadd, self.known_urls, url)
+        await gen.Task(client.disconnect)
+        return res
 
-    @gen.engine
-    def remove_domain(self, domain_name, callback=None):
+    async def forget_visit(self, url):
         client = Client(connection_pool=self.pool)
-        res = yield gen.Task(client.srem, self.known_domains, domain_name)
-        callback(res)
-        yield gen.Task(client.disconnect)
+        res = await gen.Task(client.srem, self.known_urls, url)
+        await gen.Task(client.disconnect)
+        return res
 
-    @gen.engine
-    def is_known_domain(self, domain_name, callback=None):
+    async def is_known_address(self, url):
         client = Client(connection_pool=self.pool)
-        res = yield gen.Task(client.sismember, self.known_domains, domain_name)
-        callback(res)
-        yield gen.Task(client.disconnect)
+        res = await gen.Task(client.sismember, self.known_urls, url)
+        await gen.Task(client.disconnect)
+        return res
 
-    @gen.engine
-    def put_task(self, task, callback=None):
+    async def put_task(self, task):
         client = Client(connection_pool=self.pool)
-        #logging.info('Putting task %s to %s', task, self.tasks)
-        res = yield gen.Task(client.lpush, self.tasks, task)
-        callback(res)
-        yield gen.Task(client.disconnect)
+        logging.debug('%s --> %s', task, self.tasks)
+        res = await gen.Task(client.lpush, self.tasks, task)
+        await gen.Task(client.disconnect)
+        return res
 
-    @gen.engine
-    def get_task(self, callback=None):
+    async def get_task(self):
         client = Client(connection_pool=self.pool)
-        res = yield gen.Task(client.brpop, self.tasks)
-        #logging.info('get_task result: %s', pformat(res))
-        callback(res[self.tasks])
-        yield gen.Task(client.disconnect)
+        logging.debug('Waiting for a task...')
+        res = await gen.Task(client.brpop, self.tasks)
+        await gen.Task(client.disconnect)
+        return res[self.tasks]
 
-    @gen.engine
-    def tasks_count(self, callback=None):
+    async def tasks_count(self):
         client = Client(connection_pool=self.pool)
-        res = yield gen.Task(client.llen, self.tasks)
-        callback(res)
-        yield gen.Task(client.disconnect)
+        res = await gen.Task(client.llen, self.tasks)
+        await gen.Task(client.disconnect)
+        return res
 
-
-    @gen.engine
-    def reports_count(self, callback=None):
+    async def clear_all(self):
         client = Client(connection_pool=self.pool)
-        res = yield gen.Task(client.hlen, self.reports)
-        callback(res)
-        yield gen.Task(client.disconnect)
-
-    @gen.engine
-    def clear_all(self, callback=None):
-        client = Client(connection_pool=self.pool)
-        res = yield gen.Task(client.delete, self.tasks, self.reports, self.known_domains)
-        callback(res)
+        res = await gen.Task(client.delete, self.tasks, self.known_urls)
+        await gen.Task(client.disconnect)
+        return res
 
 
 class MongoClient:
@@ -105,6 +92,7 @@ class MongoClient:
         cls.db = conn[dbname]
         logging.info('Ready for asyncroneous connections to %s', connection_str)
         cls.reports = reports_collection
+        logging.debug('MongoClient ready.')
 
     async def save_report(self, task):
         report = {
@@ -125,3 +113,6 @@ class MongoClient:
         if res.upserted_id:
             logging.info('Inserted %sreport for %s', msg, task['url'])
         return res.upserted_id
+
+    async def reports_count(self):
+        return await self.db[self.reports].count()

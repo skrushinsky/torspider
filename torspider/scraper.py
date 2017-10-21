@@ -184,7 +184,7 @@ class Page():
         lk = k.lower()
         if lk in ('date', 'expires', 'last-modified'):
             return parse_datetime(v)
-        if lk in ('content-length', 'status'):
+        if lk in ('content-length'):
             return int(v)
         return v
 
@@ -194,7 +194,7 @@ class Page():
         if self._headers is None:
             self._headers = {
                 k: self._parse_header(k, v)
-                for (k, v) in sorted(self.response.headers)
+                for (k, v) in sorted(self.response.headers.get_all())
                 if k in SAVE_HEADERS
             }
         return self._headers
