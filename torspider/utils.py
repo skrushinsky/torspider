@@ -1,6 +1,7 @@
 import os
 
 def ensure_dir(directory):
+    '''If directories structure does not exist, create them.'''
     if not os.path.exists(directory):
         os.makedirs(directory)
 
