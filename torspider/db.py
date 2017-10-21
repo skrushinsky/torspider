@@ -5,9 +5,9 @@ from tornadoredis import ConnectionPool, Client
 
 
 MAX_CONNECTIONS = 20
-KNOWN_DOMAINS = 'paparazzi:known'
-TASKS_QUEUE = 'paparazzi:tasks'
-REPORTS_HASH = 'paparazzi:reports'
+KNOWN_DOMAINS = 'torspider:known'
+TASKS_QUEUE = 'torspider:tasks'
+REPORTS_HASH = 'torspider:reports'
 
 class RedisClient:
     pool = None
