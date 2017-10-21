@@ -5,6 +5,7 @@ import unittest
 
 from tornado import testing, gen
 import redis as pyredis
+import pymongo
 
 ROOTDIR = dirname(dirname(dirname(__file__)))
 sys.path.append(ROOTDIR)
@@ -14,10 +15,11 @@ from torspider import mixins
 
 DOMAINS_SET = "torspider:test:domains"
 TASKS_LIST = "torspider:test:tasks"
-REPORTS_HASH = "torspider:test:reports"
+MONGO_DB_NAME = 'torspider_test'
+MONGO_DB = "mongodb://localhost:27017/%s" % MONGO_DB_NAME
 
 redis = pyredis.StrictRedis()
-
+mongo = pymongo.MongoClient(MONGO_DB)
 
 class SaveDomainCase(testing.AsyncTestCase):
 
@@ -28,9 +30,9 @@ class SaveDomainCase(testing.AsyncTestCase):
 
     def tearDown(self):
         super(SaveDomainCase, self).tearDown()
-        logging.info('tearDown')
+        logging.debug('tearDown')
         redis.delete(DOMAINS_SET)
-        logging.info('%s deleted.', DOMAINS_SET)
+        logging.debug('%s deleted.', DOMAINS_SET)
 
     @testing.gen_test
     def test_save_domain(self):
@@ -48,9 +50,9 @@ class CheckDomainCase(testing.AsyncTestCase):
 
     def tearDown(self):
         super(CheckDomainCase, self).tearDown()
-        logging.info('tearDown')
+        logging.debug('tearDown')
         redis.delete(DOMAINS_SET)
-        logging.info('%s deleted.', DOMAINS_SET)
+        logging.debug('%s deleted.', DOMAINS_SET)
 
     @testing.gen_test
     def test_is_known_domain(self):
@@ -72,9 +74,9 @@ class PutTaskCase(testing.AsyncTestCase):
 
     def tearDown(self):
         super(PutTaskCase, self).tearDown()
-        logging.info('tearDown')
+        logging.debug('tearDown')
         redis.delete(TASKS_LIST)
-        logging.info('%s deleted.', TASKS_LIST)
+        logging.debug('%s deleted.', TASKS_LIST)
 
     @testing.gen_test
     def test_put(self):
@@ -93,9 +95,9 @@ class GetTaskCase(testing.AsyncTestCase):
 
     def tearDown(self):
         super(GetTaskCase, self).tearDown()
-        logging.info('tearDown')
+        logging.debug('tearDown')
         redis.delete(TASKS_LIST)
-        logging.info('%s deleted.', TASKS_LIST)
+        logging.debug('%s deleted.', TASKS_LIST)
 
     @testing.gen_test
     def test_is_known_domain(self):
@@ -114,43 +116,19 @@ class SaveReportCase(testing.AsyncTestCase):
     def setUp(self):
         logging.info('setUp')
         super(SaveReportCase, self).setUp()
-        mixins.RedisClient.setup(reports_hash=REPORTS_HASH, io_loop=self.io_loop)
+        mixins.MongoClient.setup(MONGO_DB, io_loop=self.io_loop)
+        self.mongo = mixins.MongoClient()
 
     def tearDown(self):
         super(SaveReportCase, self).tearDown()
         logging.info('tearDown')
-        redis.delete(REPORTS_HASH)
-        logging.info('%s deleted.', REPORTS_HASH)
+        mongo.drop_database(MONGO_DB_NAME)
+        logging.debug('%s deleted.', MONGO_DB_NAME)
 
     @testing.gen_test
     def test_save_report(self):
-        res = yield gen.Task(mixins.RedisClient().save_report, 'http://tornadoweb.org/', 'bar')
-        self.assertEqual(1, res)
-
-
-class LoadReportCase(testing.AsyncTestCase):
-
-    def setUp(self):
-        logging.info('setUp')
-        redis.hset(REPORTS_HASH, 'http://tornadoweb.org/', 'foo')
-        super(LoadReportCase, self).setUp()
-        mixins.RedisClient.setup(reports_hash=REPORTS_HASH, io_loop=self.io_loop)
-
-    def tearDown(self):
-        super(LoadReportCase, self).tearDown()
-        logging.info('tearDown')
-        redis.delete(REPORTS_HASH)
-        logging.info('%s deleted.', REPORTS_HASH)
-
-    @testing.gen_test
-    def test_load_report(self):
-        res = yield gen.Task(mixins.RedisClient().load_report, 'http://tornadoweb.org/')
-        self.assertEqual('foo', res)
-
-    @testing.gen_test
-    def test_reports_count(self):
-        res = yield gen.Task(mixins.RedisClient().reports_count)
-        self.assertEqual(1, res)
+        res = yield self.mongo.save_report({'url': 'http://httpbin.org/', 'page': {}})
+        self.assertIsNotNone(res)
 
 def all():
     test_suite = unittest.TestSuite()
@@ -159,10 +137,15 @@ def all():
     test_suite.addTest(unittest.makeSuite(PutTaskCase))
     test_suite.addTest(unittest.makeSuite(GetTaskCase))
     test_suite.addTest(unittest.makeSuite(SaveReportCase))
-    test_suite.addTest(unittest.makeSuite(LoadReportCase))
+    # test_suite.addTest(unittest.makeSuite(LoadReportCase))
     return test_suite
 
 
 if __name__ == '__main__':
-    #
+    logging.basicConfig(
+        #level=logging.DEBUG,
+        datefmt='%Y-%m-%d %H:%M:%S',
+        format='%(asctime)s - %(levelname)-8s - %(message)s',
+        stream=sys.stderr
+    )
     testing.main(verbosity=4)

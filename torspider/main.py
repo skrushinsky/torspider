@@ -22,18 +22,21 @@ from utils import iter_file
 enable_pretty_logging()
 
 define("proxy", type=str, default='localhost:8118')
-define("mongodb", type=str, default='mongodb://localhost:27017/spider', help='MongoDB connect string')
+define("mongodb", type=str, default='mongodb://localhost:27017/torspider', help='MongoDB connect string')
 define("connect_timeout", type=float, default=10.0, help='Connect timeout')
 define("request_timeout", type=float, default=20.0, help='Request timeout')
 define("validate_cert", type=bool, default=False, help='Validate certificate')
 define("max_pages", type=int, default=0, help='Maximum pages, 0 - no limit')
 define("seeds", type=str,  multiple=True, default='conf/seeds.txt', help='Path to list of initial URLs')
-define("clear", type=bool, default=False, help='Clear existing data')
+define("clear_tasks", type=bool, default=False, help='Clear existing tasks queue')
 define("workers", type=int, default=30, help='Workers count')
+define("follow_outer_links", type=bool, default=True, help='Follow outer links')
+define("follow_inner_links", type=bool, default=False, help='Follow inner links')
 
 io_loop = IOLoop.current()
 
 async def main():
+    mixins.MongoClient.setup(options.mongodb)
     mixins.RedisClient.setup()
     redis = mixins.RedisClient()
     if options.clear:

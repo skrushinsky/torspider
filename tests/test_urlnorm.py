@@ -19,8 +19,8 @@ class UrlNormTestCase(unittest.TestCase):
         self.assertEqual(('http', 'httpbin.org', '/', '', '', ''), res)
 
     def test_no_default_authority(self):
-        with self.assertRaises(AssertionError) as ex:
-            res = urlnorm.norm('/')
+        with self.assertRaises(AssertionError):
+            urlnorm.norm('/')
 
     def test_non_default_port(self):
         res = urlnorm.norm('http://httpbin.org:8080/')
@@ -78,7 +78,7 @@ class DomainExtractCase(unittest.TestCase):
 def all():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(UrlNormTestCase))
-    test_suite.addTest(unittest.makeSuite(DomainUtilitiesCase))
+    test_suite.addTest(unittest.makeSuite(DomainExtractCase))
     return test_suite
 
 

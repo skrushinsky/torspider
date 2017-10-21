@@ -12,7 +12,7 @@ from tornado import httpclient
 from tornado.httputil import HTTPHeaders
 from tornado.options import options
 
-from .urlnorm import norm, join_parts, get_first_level_domain
+from torspider.urlnorm import norm, join_parts, get_domain
 
 
 ALLOW_SCHEMES = ('http', 'https')
@@ -44,7 +44,7 @@ SKIP_TAGS = ("script", "style", "form", "input")
 
 
 def is_inner_link(url, page):
-    return get_first_level_domain(url) == get_first_level_domain(page.base)
+    return get_domain(url) == get_domain(page.base)
 
 class Page():
     """
