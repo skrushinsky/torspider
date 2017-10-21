@@ -3,5 +3,7 @@ pycurl
 bs4
 lxml
 motor
+redis
+tornado-redis
 langdetect
 python-dateutil
