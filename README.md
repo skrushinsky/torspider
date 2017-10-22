@@ -57,10 +57,10 @@ With 50 asynchroneous workers:
 $ python torspider/main.py --workers=50
 ```
 
-To stop after passing 200 pages:
+To stop after passing 5000 pages:
 
 ```
-$ python torspider/main.py --workers=50
+$ python torspider/main.py --max-pages=5000
 ```
 
 To see all available options, run:
@@ -69,12 +69,24 @@ To see all available options, run:
 $ python torspider/main.py --help
 ```
 
+#### Concurrency
+
+Default number of workers is **10**, so that even my outdated laptop
+with 1.7Gib memory and AMD C-50 processor running Linux traverses 100 pages
+in about 3-5 minutes. Running 50-100 workers on a contemporary MacBook gives
+much better results, but after several hours its WiFi adapter breaks down. So,
+consider your hardware and network capacity. This requires trial and error.
 
 ## TODOs:
 
 1. More settings should be configurable.
-1. Throttling (tasks queue should be )
-1. Make it pluggable: The core should be responsible for traversing the network,
+1. Wiki.
+1. Throttling (length of the tasks queue should not grow too quickly).
+1. Pluggable design: The core should be responsible for traversing the network,
    while results should be handled by plugins.
-1. Handle additional content types.
-1. GUI.
+1. Black list of domains and addresses.
+1. Pauses between succedent request to the same domain.
+1. Additional content types.
+1. Monitoring tools.
+1. Sphinx-compatiable documentation.
+1. Consider GUI for common tasks.
