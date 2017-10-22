@@ -110,7 +110,7 @@ class MongoClient:
             upsert=True
         )
         if res.upserted_id:
-            logging.info('Inserted %sreport for %s', msg, task['url'])
+            logging.debug('Inserted %sreport for %s', msg, task['url'])
         return res.upserted_id
 
     async def reports_count(self):

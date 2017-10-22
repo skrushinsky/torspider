@@ -47,7 +47,7 @@ class Worker(mixins.RedisClient, mixins.MongoClient, HTTPClient):
                 task = await self.get_task()
                 if not task:
                     continue
-                logging.info('Got task: <%s>', task)
+                logging.debug('Got task: <%s>', task)
                 res = await self.visit(task)
             except (httpclient.HTTPError, AssertionError, UnicodeError, TypeError) as ex:
                 logging.error(ex)

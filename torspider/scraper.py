@@ -266,7 +266,7 @@ class HTTPClient:
 
 
     async def visit(self, url, count=0):
-        logging.info('Fetching %s...', url)
+        logging.debug('Fetching %s...', url)
         try:
             req = httpclient.HTTPRequest(url, **self.req_options)
         except UnicodeEncodeError as ex:
