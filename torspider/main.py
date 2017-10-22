@@ -56,7 +56,7 @@ async def main():
         tasks_count = await redis.tasks_count()
         pages_count = await mongo.reports_count()
         #logging.info('Pages: %d, Tasks: %d', pages_count, tasks_count)
-        if tasks_count > 0 and pages_count >= options.max_pages:
+        if options.max_pages > 0 and pages_count >= options.max_pages:
             logging.warn('Pages limit (%d) exceeded. Exiting...', options.max_pages)
             break
         gen.sleep(5.0)
