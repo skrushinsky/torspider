@@ -92,14 +92,14 @@ Of course, this is an extreme case!
 ## TODOs:
 
 1. More configurable settings.
-1. Script for running all unit tests.
+1. Script for running all unit tests at once.
 1. Wiki.
-1. Throttling (length of the tasks queue should not grow too quickly).
-1. Pluggable design: The core should be responsible for traversing the network,
+1. Throttling: length of the tasks queue should not grow too quickly.
+1. Pluggable design: the core should be responsible for traversing the network,
    while results should be handled by plugins.
-1. Black list of domains and addresses.
+1. Black list of domains / addresses.
 1. Pauses between succedent request to the same domain.
 1. Additional content types.
 1. Monitoring tools.
 1. Sphinx-compatiable documentation.
-1. Consider GUI for common tasks.
+1. GUI.
