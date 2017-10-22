@@ -33,8 +33,8 @@ $ python tests/test_mixins.py
 
 #### Configuration
 
-To change default options, edit **conf/local.conf**. To provide initial URLs,
-edit **conf/seeds.txt** file.
+1. Copy **conf/default.conf** to **conf/local.conf** and edit the latter.
+1. To provide initial URLs, edit **conf/seeds.txt** file.
 
 Please, note: options from command line override those from the configuration file.
 
