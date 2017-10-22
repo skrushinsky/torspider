@@ -91,7 +91,7 @@ Of course, this is an extreme case!
 
 ## TODOs:
 
-1. More settings should be configurable.
+1. More configurable settings.
 1. Script for running all unit tests.
 1. Wiki.
 1. Throttling (length of the tasks queue should not grow too quickly).
