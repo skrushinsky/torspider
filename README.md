@@ -79,13 +79,14 @@ $ python torspider/main.py --help
 #### Concurrency
 
 Default number of workers is **10**, so that even my outdated laptop
-with 1.7Gib memory and AMD C-50 processor running Linux traverses 100 pages
-in about 3-5 minutes. Running 50-100 workers on a contemporary MacBook gives
-much better results, but after several hours its WiFi adapter breaks down. So,
-consider your hardware and network capacity. This requires trial and error.
+with 1.7Gib memory and AMD C-50 processor running Linux with moderate WiFi
+connection traverses 100 pages in about 3-5 minutes. Running 50-100 workers on
+a contemporary MacBook gives much better results, but after several hours its
+WiFi adapter breaks down. So, consider your hardware and network capacity.
+This requires trial and error.
 
-Also, tasks may be executed by a number of processes running in parallel. Here is
-example of starting 10 separate processes:
+Also, tasks may be executed by a number of processes running in parallel. Example
+of starting 10 separate processes:
 
 ```
 $ perl -e 'print "./paparazzi/dispatcher.py\n" x 10' | xargs -P 10 -I {} python {}
