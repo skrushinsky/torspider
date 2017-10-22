@@ -1,7 +1,11 @@
 # torspider
 
 Fast asynchronous web-crawler based on [Tornado framework](http://tornadoweb.org).
-Tested on MacOSX and Debian-based Linux.
+
+Tested on:
+
+* MacOSX
+* Debian-based Linux.
 
 ## Usage
 
