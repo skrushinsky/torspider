@@ -1,13 +1,13 @@
 # torspider
 
 Fast asynchroneous web-crawler based on [Tornado framework](http://tornadoweb.org).
-Tested on OSX 10.
+Tested on OSX and Linux.
 
 ## Usage
 
 ### Prerequisits
 
-* Python 3.6
+* Python >= 3.5
 * Redis server
 * MongoDB
 
@@ -74,6 +74,7 @@ $ python torspider/main.py --help
 
 1. More settings should be configurable.
 1. Throttling (tasks queue should be )
-1. Results should be handled by plugins, e.g.: saving reports to MongoDB.
+1. Make it pluggable: The core should be responsible for traversing the network,
+   while results should be handled by plugins.
 1. Handle additional content types.
 1. GUI.

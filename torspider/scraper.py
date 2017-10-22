@@ -14,6 +14,7 @@ from tornado.options import options
 
 from torspider.urlnorm import norm, join_parts, get_domain
 
+from langdetect.lang_detect_exception import LangDetectException
 
 ALLOW_SCHEMES = ('http', 'https')
 ALLOWED_TYPES = ('text/html')
@@ -152,7 +153,11 @@ class Page():
     def language(self):
         """Detected page language."""
         if self._language is None:
-            self._language = detect(self.text)
+            try:
+                self._language = detect(self.text)
+            except LangDetectException as ex:
+                logging.error(ex)
+                self._language = 'UNKNOWN'
         return self._language
 
     def _iter_links(self):
@@ -183,7 +188,11 @@ class Page():
     def _parse_header(self, k, v):
         lk = k.lower()
         if lk in ('date', 'expires', 'last-modified'):
-            return parse_datetime(v)
+            try:
+                return parse_datetime(v)
+            except ValueError as ex:
+                logging.error(ex)
+                return v
         if lk in ('content-length'):
             return int(v)
         return v
