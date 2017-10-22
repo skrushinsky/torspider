@@ -66,7 +66,7 @@ class Worker(mixins.RedisClient, mixins.MongoClient, HTTPClient):
                 await self.save_report({'url': res.effective_url, 'page': page.as_dict()})
 
                 pages_count = await self.reports_count()
-                if pages_count >= options.max_pages:
+                if options.max_pages > 0 and pages_count >= options.max_pages:
                     logging.info('Task <%s> completed.', task)
                     logging.warn('Pages limit (%d) exceeded. Exiting...', options.max_pages)
                     break
