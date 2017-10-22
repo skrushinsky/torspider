@@ -6,7 +6,7 @@ from tornadoredis import ConnectionPool, Client
 import motor
 import pymongo
 
-MAX_CONNECTIONS = 20
+MAX_CONNECTIONS = 200
 KNOWN_URLS = 'torspider:known'
 TASKS_QUEUE = 'torspider:tasks'
 REPORTS_COLLECTION = 'reports'
