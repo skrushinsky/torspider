@@ -1,12 +1,13 @@
 # torspider
 
-Fast asynchroneous web-crawler based on [Tornado framework](http://tornadoweb.org).
-Tested on OSX and Linux.
+Fast asynchronous web-crawler based on [Tornado framework](http://tornadoweb.org).
+Tested on MacOSX and Debian-based Linux.
 
 ## Usage
 
-### Prerequisits
+### Prerequisites
 
+* Unix
 * Python >= 3.5
 * Redis server
 * MongoDB
@@ -20,6 +21,9 @@ To install required Python packages, run from the project root:
 ```
 $ pip install -r requirements.txt
 ```
+
+Linux installation may require additional development packages for building
+[pycurl](http://pycurl.io) with SSL support.  
 
 #### Testing
 
@@ -38,7 +42,6 @@ $ python tests/test_mixins.py
 
 Please, note: options from command line override those from the configuration file.
 
-
 ### Running
 
 ```
@@ -51,7 +54,7 @@ With extra logging:
 $ python torspider/main.py --logging=debug
 ```
 
-With 50 asynchroneous workers:
+With 50 asynchronous workers:
 
 ```
 $ python torspider/main.py --workers=50
@@ -77,9 +80,19 @@ in about 3-5 minutes. Running 50-100 workers on a contemporary MacBook gives
 much better results, but after several hours its WiFi adapter breaks down. So,
 consider your hardware and network capacity. This requires trial and error.
 
+Also, tasks may be executed by a number of processes running in parallel. Here is
+example of starting 10 separate processes:
+
+```
+$ perl -e 'print "./paparazzi/dispatcher.py\n" x 10' | xargs -P 10 -I {} python {}
+```
+Of course, this is an extreme case!
+
+
 ## TODOs:
 
 1. More settings should be configurable.
+1. Script for running all unit tests.
 1. Wiki.
 1. Throttling (length of the tasks queue should not grow too quickly).
 1. Pluggable design: The core should be responsible for traversing the network,
