@@ -29,7 +29,7 @@ define("validate_cert", type=bool, default=False, help='Validate certificate')
 define("max_pages", type=int, default=100, help='Maximum pages, 0 - no limit')
 define("seeds", type=str, default='conf/seeds.txt', help='Path to list of initial URLs')
 define("clear_tasks", type=bool, default=False, help='Clear existing tasks queue')
-define("workers", type=int, default=30, help='Workers count')
+define("workers", type=int, default=10, help='Workers count')
 define("follow_outer_links", type=bool, default=True, help='Follow outer links')
 define("follow_inner_links", type=bool, default=False, help='Follow inner links')
 
