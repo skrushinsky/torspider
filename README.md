@@ -23,11 +23,20 @@ Tested on:
 To install required Python packages, run from the project root:
 
 ```
-$ pip install -r requirements.txt
+$ python setup.py install develop
 ```
 
 Linux installation may require additional steps for building
-[pycurl](http://pycurl.io) with SSL support.  
+[pycurl](http://pycurl.io) with SSL support. In such case you may find more
+convenient before running **setup** to install all Python dependencies:
+
+```
+$ pip install -r requirements.txt
+```
+
+If it fails at some stage because of a missing system package, install the package
+manually with your standard package manager (apt, yum, etc.), then repeat the
+above command.
 
 #### Testing
 
@@ -41,40 +50,45 @@ $ python tests/test_mixins.py
 
 #### Configuration
 
-1. Copy **conf/default.conf** to **conf/local.conf** and edit the latter.
-1. To provide initial URLs, edit **conf/seeds.txt** file.
+Default configuration file is named **default.conf**. To override any of the
+predefined settings, put the same key with desired value to **local.conf** or
+provide alternate command line option. The rule is simple:
 
-Please, note: options from command line override those from the configuration file.
+* Options from **local.conf** override those from  **default.conf**.
+* Options from command line override those from both the configuration files.
+
+To see all available options, run:
+
+```
+$ torspider --help
+```
+
+To provide initial URLs, edit **seeds.conf** file. Note: without
 
 ### Running
 
 ```
-$ python torspider/main.py
+$ torspider
 ```
 
 With extra logging:
 
 ```
-$ python torspider/main.py --logging=debug
+$ torspider --logging=debug
 ```
 
 With 50 asynchronous workers:
 
 ```
-$ python torspider/main.py --workers=50
+$ torspider --workers=50
 ```
 
 To stop after passing 5000 pages:
 
 ```
-$ python torspider/main.py --max-pages=5000
+$ torspider --max-pages=5000
 ```
 
-To see all available options, run:
-
-```
-$ python torspider/main.py --help
-```
 
 #### Concurrency
 
@@ -89,7 +103,7 @@ Also, tasks may be executed by a number of processes running in parallel. Exampl
 of starting 10 separate processes:
 
 ```
-$ perl -e 'print "./paparazzi/dispatcher.py\n" x 10' | xargs -P 10 -I {} python {}
+$ seq 10 | xargs -Iz -P10 torspider
 ```
 Of course, this is an extreme case!
 
