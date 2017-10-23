@@ -29,5 +29,10 @@ setup(name='torspider',
           'console_scripts': [
                'torspider = torspider.main:run_main',
           ],
+          # see: http://amir.rachum.com/blog/2017/07/28/python-entry-points/
+          'torspider_consumer': [
+              'save_to_mongo = torspider_mongo:save_report',
+              #'fancy = snek:fancy_snek',
+          ],
         }
 )
