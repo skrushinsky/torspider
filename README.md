@@ -26,7 +26,7 @@ To install required Python packages, run from the project root:
 $ pip install -r requirements.txt
 ```
 
-Linux installation may require additional development packages for building
+Linux installation may require additional steps for building
 [pycurl](http://pycurl.io) with SSL support.  
 
 #### Testing

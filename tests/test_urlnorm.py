@@ -3,9 +3,6 @@ from os.path import dirname
 import logging
 import unittest
 
-ROOTDIR = dirname(dirname(dirname(__file__)))
-sys.path.append(ROOTDIR)
-
 from torspider import urlnorm
 
 class UrlNormTestCase(unittest.TestCase):

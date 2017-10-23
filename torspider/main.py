@@ -10,14 +10,15 @@ from tornado import gen
 from tornado.options import define, options, parse_command_line, parse_config_file
 from tornado.log import enable_pretty_logging
 from tornado.ioloop import IOLoop
-import mixins
+from . import mixins
 
-ROOTDIR = abspath(dirname(dirname(__file__)))
-sys.path.append(ROOTDIR)
-CONF = os.path.join(ROOTDIR, 'conf', 'local.conf')
+from pkg_resources import Requirement, resource_filename
+DEFAULT_CONF = resource_filename(Requirement.parse('torspider'),"default.conf")
+LOCAL_CONF = resource_filename(Requirement.parse('torspider'),"local.conf")
+SEEDS_CONF = resource_filename(Requirement.parse('torspider'),"seeds.conf")
 
-from worker import Worker, add_task
-from utils import iter_file
+from .worker import Worker, add_task
+from .utils import iter_file
 
 enable_pretty_logging()
 
@@ -27,8 +28,7 @@ define("connect_timeout", type=float, default=10.0, help='Connect timeout')
 define("request_timeout", type=float, default=20.0, help='Request timeout')
 define("validate_cert", type=bool, default=False, help='Validate certificate')
 define("max_pages", type=int, default=100, help='Maximum pages, 0 - no limit')
-define("seeds", type=str, default='conf/seeds.txt', help='Path to list of initial URLs')
-define("clear_tasks", type=bool, default=False, help='Clear existing tasks queue')
+define("clear_tasks", type=bool, default=True, help='Clear existing tasks queue')
 define("workers", type=int, default=10, help='Workers count')
 define("follow_outer_links", type=bool, default=True, help='Follow outer links')
 define("follow_inner_links", type=bool, default=False, help='Follow inner links')
@@ -43,7 +43,7 @@ async def main():
     if options.clear_tasks:
         await redis.clear_all()
 
-    for seed in iter_file(options.seeds):
+    for seed in iter_file(SEEDS_CONF):
         await add_task(redis, seed.strip())
         logging.info('Added seed: %s.', seed)
 
@@ -61,8 +61,9 @@ async def main():
             break
         gen.sleep(5.0)
 
-if __name__ == "__main__":
-    parse_config_file(CONF)
+def run_main():
+    parse_config_file(DEFAULT_CONF)
+    parse_config_file(LOCAL_CONF)
     parse_command_line()
     try:
         io_loop.run_sync(main)
@@ -70,3 +71,7 @@ if __name__ == "__main__":
         logging.warning('Interrupted.')
     except Exception as ex:
         logging.error(ex, exc_info=True)
+
+
+if __name__ == "__main__":
+    run_main()

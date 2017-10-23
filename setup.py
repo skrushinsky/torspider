@@ -25,7 +25,9 @@ setup(name='torspider',
           'langdetect',
           'python-dateutil',
       ],
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
-      )
+      entry_points={
+          'console_scripts': [
+               'torspider = torspider.main:run_main',
+          ],
+        }
+)

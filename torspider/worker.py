@@ -9,11 +9,10 @@ from tornado.options import options
 from tornado import httpclient
 import pymongo
 
-from scraper import HTTPClient, Page
-from urlnorm import norm, join_parts, first_level_domain
-import mixins
+from .scraper import HTTPClient, Page
+from .urlnorm import norm, join_parts, first_level_domain
+from .import mixins
 
-ROOTDIR = abspath(dirname(dirname(__file__)))
 
 async def add_task(redis, url):
     task = join_parts(norm(url))

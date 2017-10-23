@@ -7,9 +7,6 @@ from tornado import testing
 from tornado.options import define
 from  tornado.httpclient import HTTPError
 
-ROOTDIR = dirname(dirname(dirname(__file__)))
-sys.path.append(ROOTDIR)
-
 # import application packages
 from torspider import scraper
 
