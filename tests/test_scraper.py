@@ -1,11 +1,9 @@
-import sys
-from os.path import dirname
 import logging
 import unittest
 
 from tornado import testing
-from tornado.options import define
 from  tornado.httpclient import HTTPError
+from tornado.options import define
 
 # import application packages
 from torspider import scraper

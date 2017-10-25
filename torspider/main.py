@@ -2,14 +2,12 @@
 '''
 Main module, starts and dispatches the entire workflow.
 '''
-
-import os, sys
-from os.path import dirname, abspath
 import logging
 from tornado import gen
 from tornado.options import define, options, parse_command_line, parse_config_file
 from tornado.log import enable_pretty_logging
 from tornado.ioloop import IOLoop
+import pkg_resources
 from . import mixins
 
 from pkg_resources import Requirement, resource_filename
@@ -22,8 +20,8 @@ from .utils import iter_file
 
 enable_pretty_logging()
 
+
 define("proxy", type=str, default='localhost:8118')
-define("mongodb", type=str, default='mongodb://localhost:27017/torspider', help='MongoDB connect string')
 define("connect_timeout", type=float, default=10.0, help='Connect timeout')
 define("request_timeout", type=float, default=20.0, help='Request timeout')
 define("validate_cert", type=bool, default=False, help='Validate certificate')
@@ -35,11 +33,21 @@ define("follow_inner_links", type=bool, default=False, help='Follow inner links'
 
 io_loop = IOLoop.current()
 
+def init_plugins():
+    for entry_point in pkg_resources.iter_entry_points('torspider_init'):
+        logging.info('Initializing %s plugin...', entry_point.name)
+        f = entry_point.load()
+        f()
+
 async def main():
-    mixins.MongoClient.setup(options.mongodb)
     mixins.RedisClient.setup()
     redis = mixins.RedisClient()
-    mongo = mixins.MongoClient()
+    init_plugins()
+    consumers = {
+        ep.name: ep.load()
+        for ep in pkg_resources.iter_entry_points('torspider_consume')
+    }
+
     if options.clear_tasks:
         await redis.clear_all()
 
@@ -48,23 +56,24 @@ async def main():
         logging.info('Added seed: %s.', seed)
 
     for i in range(options.workers):
-        w = Worker('Worker-%d' % (i+1))
+        w = Worker('Worker-%d' % (i+1), consumers=consumers)
         io_loop.spawn_callback(w)
 
     logging.info('Waiting...')
     while True:
-        tasks_count = await redis.tasks_count()
-        pages_count = await mongo.reports_count()
+        pages_count = await redis.pages_count()
         #logging.info('Pages: %d, Tasks: %d', pages_count, tasks_count)
         if options.max_pages > 0 and pages_count >= options.max_pages:
             logging.warn('Pages limit (%d) exceeded. Exiting...', options.max_pages)
             break
         gen.sleep(5.0)
 
+
 def run_main():
     parse_config_file(DEFAULT_CONF)
     parse_config_file(LOCAL_CONF)
     parse_command_line()
+    init_plugins()
     try:
         io_loop.run_sync(main)
     except KeyboardInterrupt:

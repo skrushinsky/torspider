@@ -1,11 +1,9 @@
 import sys
-from os.path import dirname
 import logging
 import unittest
-
-from tornado import testing, gen
+from tornado import testing
 import redis as pyredis
-import pymongo
+
 
 
 # import application packages
@@ -13,11 +11,8 @@ from torspider import mixins
 
 DOMAINS_SET = "torspider:test:known"
 TASKS_LIST = "torspider:test:tasks"
-MONGO_DB_NAME = 'torspider_test'
-MONGO_DB = "mongodb://localhost:27017/%s" % MONGO_DB_NAME
-
 redis = pyredis.StrictRedis()
-mongo = pymongo.MongoClient('mongodb://localhost:27017')
+
 
 class SaveDomainCase(testing.AsyncTestCase):
 
@@ -60,6 +55,11 @@ class CheckDomainCase(testing.AsyncTestCase):
     @testing.gen_test
     def test_forget_visit(self):
         res = yield mixins.RedisClient().forget_visit('tornadoweb.org')
+        self.assertEqual(1, res)
+
+    @testing.gen_test
+    def test_pages_count(self):
+        res = yield mixins.RedisClient().pages_count()
         self.assertEqual(1, res)
 
 
@@ -109,56 +109,12 @@ class GetTaskCase(testing.AsyncTestCase):
         self.assertEqual(1, res)
 
 
-class SaveReportCase(testing.AsyncTestCase):
-
-    def setUp(self):
-        logging.info('setUp')
-        super(SaveReportCase, self).setUp()
-        mixins.MongoClient.setup(MONGO_DB, io_loop=self.io_loop)
-        self.mongo = mixins.MongoClient()
-
-    def tearDown(self):
-        super(SaveReportCase, self).tearDown()
-        logging.info('tearDown')
-        mongo.drop_database(MONGO_DB_NAME)
-        logging.debug('%s deleted.', MONGO_DB_NAME)
-
-    @testing.gen_test
-    def test_save_report(self):
-        res = yield self.mongo.save_report({'url': 'http://httpbin.org/', 'page': {}})
-        self.assertIsNotNone(res)
-
-
-
-class ReportsCountCase(testing.AsyncTestCase):
-
-    def setUp(self):
-        logging.info('setUp')
-        mongo[MONGO_DB_NAME].reports.insert_one({'url': 'http://httpbin.org/', 'page': {}})
-        super(ReportsCountCase, self).setUp()
-        mixins.MongoClient.setup(MONGO_DB, io_loop=self.io_loop)
-        self.mongo = mixins.MongoClient()
-
-    def tearDown(self):
-        super(ReportsCountCase, self).tearDown()
-        logging.info('tearDown')
-        mongo.drop_database(MONGO_DB_NAME)
-        logging.debug('%s deleted.', MONGO_DB_NAME)
-
-    @testing.gen_test
-    def test_reports_count(self):
-        res = yield self.mongo.reports_count()
-        self.assertEqual(1, res)
-
-
 def all():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(SaveDomainCase))
     test_suite.addTest(unittest.makeSuite(CheckDomainCase))
     test_suite.addTest(unittest.makeSuite(PutTaskCase))
     test_suite.addTest(unittest.makeSuite(GetTaskCase))
-    test_suite.addTest(unittest.makeSuite(SaveReportCase))
-    test_suite.addTest(unittest.makeSuite(ReportsCountCase))
 
     return test_suite
 

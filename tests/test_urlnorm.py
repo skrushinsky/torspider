@@ -1,5 +1,4 @@
 import sys
-from os.path import dirname
 import logging
 import unittest
 
