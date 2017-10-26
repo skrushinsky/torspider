@@ -70,6 +70,16 @@ To provide initial URLs, edit **seeds.conf** file. If you do not provide any
 were no previous sessions, or you start torspider with **--clear-tasks** option,
 there won't be any tasks for workers.
 
+##### Enabling Plugins
+
+**plugins.conf** file contains list of available plugins. To disable a plugin,
+comment it out with **#** symbol. Example:
+
+```
+# mongo_client
+```
+
+
 ### Running
 
 ```
@@ -99,23 +109,6 @@ To clear all data from previous session:
 ```
 $ torspider --clear-tasks
 ```
-
-### Concurrency
-
-Default number of workers is **10**, so that even my outdated laptop
-with 1.7Gib memory and AMD C-50 processor running Linux with moderate WiFi
-connection traverses 100 pages in about 3-5 minutes. Running 50-100 workers on
-a contemporary MacBook gives much better results, but after several hours its
-WiFi adapter breaks down. So, consider your hardware and network capacity.
-This requires trial and error.
-
-Also, tasks may be executed by a number of processes running in parallel. Example
-of starting 10 separate processes:
-
-```
-$ seq 10 | xargs -Iz -P10 torspider
-```
-Of course, this is an extreme case!
 
 
 ## Extending
