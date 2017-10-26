@@ -56,8 +56,7 @@ provide an alternative via command-line option. The rule is simple:
 
 To see all available command-line options, run:
 
-See also [Options Table](https://github.com/skrushinsky/torspider/wiki/Options)
-at Wiki.
+See also [the detailed options description](https://github.com/skrushinsky/torspider/wiki/Options).
 
 
 ```
