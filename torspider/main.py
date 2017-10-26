@@ -37,11 +37,12 @@ enabled_plugins = []
 
 def process_entry_point(point_name, *args, **kwargs):
     for entry_point in pkg_resources.iter_entry_points(point_name):
-        if options.entry_point.name in enabled_plugins:
+        if entry_point.name in enabled_plugins:
             f = entry_point.load()
             f(*args, **kwargs)
 
 async def main():
+    tasks.RedisClient.setup()
     redis = tasks.RedisClient()
 
     consumers = {
@@ -74,11 +75,11 @@ async def main():
 def run_main():
     parse_config_file(DEFAULT_CONF)
     parse_config_file(LOCAL_CONF)
-    parse_config_file(PLUGINS_CONF)
     parse_command_line()
 
-    tasks.RedisClient.setup()
-    enabled_plugins.extend([ k for (k, v) in options.items() if v ])
+    for plugin_name in iter_file(PLUGINS_CONF):
+        enabled_plugins.append(plugin_name)
+
     process_entry_point('torspider_init')
     try:
         io_loop.run_sync(main)
