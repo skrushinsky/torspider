@@ -97,6 +97,24 @@ To clear all data from previous session:
 $ torspider --clear-tasks
 ```
 
+### Concurrency
+
+Default number of workers is **10**, so that even my outdated laptop
+with 1.7Gib memory and AMD C-50 processor running Linux with moderate WiFi
+connection traverses 100 pages in about 3-5 minutes. Running 50-100 workers on
+a contemporary MacBook gives much better results, but after several hours its
+WiFi adapter breaks down. So, consider your hardware and network capacity.
+This requires trial and error.
+
+Also, tasks may be executed by a number of processes running in parallel. Example
+of starting 10 separate processes:
+
+```
+$ seq 10 | xargs -Iz -P10 torspider
+```
+Of course, this is an extreme case!
+
+
 ## Extending
 
 The program is *pluggable*. Briefly speaking, its primary responsibility is to
@@ -198,24 +216,7 @@ See:
 * http://amir.rachum.com/blog/2017/07/28/python-entry-points/
 * https://packaging.python.org/guides/creating-and-discovering-plugins/
 
-
-#### Concurrency
-
-Default number of workers is **10**, so that even my outdated laptop
-with 1.7Gib memory and AMD C-50 processor running Linux with moderate WiFi
-connection traverses 100 pages in about 3-5 minutes. Running 50-100 workers on
-a contemporary MacBook gives much better results, but after several hours its
-WiFi adapter breaks down. So, consider your hardware and network capacity.
-This requires trial and error.
-
-Also, tasks may be executed by a number of processes running in parallel. Example
-of starting 10 separate processes:
-
-```
-$ seq 10 | xargs -Iz -P10 torspider
-```
-Of course, this is an extreme case!
-
+- - -
 
 ## TODOs:
 
