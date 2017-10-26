@@ -118,10 +118,10 @@ Of course, this is an extreme case!
 ## Extending
 
 The program is *pluggable*. Briefly speaking, its primary responsibility is to
-traverse the network following a set of rules. But **how to use the results**,
-is up to the plugins. For instance, in one user scenario each page must be
-parsed and saved to a database. Another scenario requires extracting some special
-information from the page, such as stock prices.
+traverse the network following a set of rules. **How to use the results** is
+entirely up to plugins. In one user scenario each page must be parsed and saved
+to a database. Some other scenario requires extracting some special information 
+from the page, such as stock prices.
 
 ### Entry points
 
