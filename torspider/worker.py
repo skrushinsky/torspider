@@ -21,7 +21,7 @@ async def add_task(redis, url):
         return
     logging.debug('%s is new', task)
     await redis.put_task(task)
-    logging.info('Registered task <%s>', task)
+    logging.debug('Registered task <%s>', task)
 
 
 class Worker(tasks.RedisClient, HTTPClient):
@@ -32,16 +32,16 @@ class Worker(tasks.RedisClient, HTTPClient):
         self.consumers = consumers
 
     async def consume(self, report, consumers=None):
-        logging.info('Calling consumers')
+        logging.debug('Calling consumers')
         for name, func in self.consumers.items():
-            logging.info('Calling consumer <%s> function %s...', name, func)
+            logging.debug('Calling consumer <%s> function %s...', name, func)
             try:
                 await func(report)
             except Exception as ex:
                 logging.error(ex, exc_info=True)
 
     async def __call__(self):
-        logging.info('%s started.', self.name)
+        logging.debug('%s started.', self.name)
         while True:
             try:
                 task = await self.get_task() # the task is now in 'working' set
@@ -63,13 +63,16 @@ class Worker(tasks.RedisClient, HTTPClient):
                     break
 
                 inner, outer = page.partition_links()
+                i = 0
                 if options.follow_outer_links:
                     for link in outer:
                         await add_task(self, link)
+                        i += 1
                 if options.follow_inner_links:
                     for link in inner:
                         await add_task(self, link)
-
+                        i += 1
+                logging.info('Registered %d new tasks from %s', i+1, res.effective_url)
                 logging.debug('Task <%s> completed.', task)
 
             finally:

@@ -29,7 +29,7 @@ setup(name='torspider',
           'console_scripts': [
                'torspider = torspider.main:run_main',
           ], # see: http://amir.rachum.com/blog/2017/07/28/python-entry-points/
-          'torspider_init': [],
-          'torspider_consume': [],
+          'torspider_init': [], # initialization stage
+          'torspider_consume': [], # called when page is aquired or error is detected
         }
 )

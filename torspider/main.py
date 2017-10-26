@@ -33,16 +33,20 @@ define("follow_inner_links", type=bool, default=False, help='Follow inner links'
 
 io_loop = IOLoop.current()
 
-def init_plugins():
-    for entry_point in pkg_resources.iter_entry_points('torspider_init'):
-        logging.info('Initializing %s plugin...', entry_point.name)
+def _process_entry_point(point_name):
+    for entry_point in pkg_resources.iter_entry_points(point_name):
         f = entry_point.load()
         f()
 
+def init_plugins():
+    _process_entry_point('torspider_init')
+
+def done_plugins():
+    _process_entry_point('torspider_done')
+
+
 async def main():
-    tasks.RedisClient.setup()
     redis = tasks.RedisClient()
-    init_plugins()
     consumers = {
         ep.name: ep.load()
         for ep in pkg_resources.iter_entry_points('torspider_consume')
@@ -73,6 +77,7 @@ def run_main():
     parse_config_file(DEFAULT_CONF)
     parse_config_file(LOCAL_CONF)
     parse_command_line()
+    tasks.RedisClient.setup()
     init_plugins()
     try:
         io_loop.run_sync(main)
@@ -80,6 +85,8 @@ def run_main():
         logging.warning('Interrupted.')
     except Exception as ex:
         logging.error(ex, exc_info=True)
+    finally:
+        done_plugins()
 
 
 if __name__ == "__main__":
