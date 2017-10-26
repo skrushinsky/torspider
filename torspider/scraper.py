@@ -219,7 +219,8 @@ class Page():
         if self.language:
             report['language'] = self.language
         if self.links:
-            report['links'] = list(self.links)
+            inner, outer = self.partition_links()
+            report['links'] = {'inner': inner, 'outer': outer}
         if self.headers:
             report['headers'] = self.headers
 

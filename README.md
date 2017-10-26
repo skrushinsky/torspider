@@ -43,9 +43,7 @@ above command.
 Run unit tests one by one:
 
 ```
-$ python tests/test_urlnorm.py
-$ python tests/test_scraper.py
-$ python tests/test_mixins.py
+$ python -m unittest discover tests/ -p test_*.py
 ```
 
 #### Configuration

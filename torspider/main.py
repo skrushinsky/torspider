@@ -8,7 +8,7 @@ from tornado.options import define, options, parse_command_line, parse_config_fi
 from tornado.log import enable_pretty_logging
 from tornado.ioloop import IOLoop
 import pkg_resources
-from . import mixins
+from . import tasks
 
 from pkg_resources import Requirement, resource_filename
 DEFAULT_CONF = resource_filename(Requirement.parse('torspider'),"default.conf")
@@ -40,8 +40,8 @@ def init_plugins():
         f()
 
 async def main():
-    mixins.RedisClient.setup()
-    redis = mixins.RedisClient()
+    tasks.RedisClient.setup()
+    redis = tasks.RedisClient()
     init_plugins()
     consumers = {
         ep.name: ep.load()
@@ -61,9 +61,9 @@ async def main():
 
     logging.info('Waiting...')
     while True:
-        pages_count = await redis.pages_count()
-        #logging.info('Pages: %d, Tasks: %d', pages_count, tasks_count)
-        if options.max_pages > 0 and pages_count >= options.max_pages:
+        passed_count = await redis.passed_count()
+        #logging.info('Pages: %d, Tasks: %d', passed_count, tasks_count)
+        if options.max_pages > 0 and passed_count >= options.max_pages:
             logging.warn('Pages limit (%d) exceeded. Exiting...', options.max_pages)
             break
         gen.sleep(5.0)
