@@ -8,7 +8,7 @@ from tornado.options import options
 from tornado import httpclient
 
 from .scraper import HTTPClient, Page
-from .urlnorm import norm, join_parts, first_level_domain
+from .urlnorm import norm, join_parts
 from . import tasks
 
 

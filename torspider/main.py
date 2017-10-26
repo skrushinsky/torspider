@@ -14,6 +14,7 @@ from pkg_resources import Requirement, resource_filename
 DEFAULT_CONF = resource_filename(Requirement.parse('torspider'),"default.conf")
 LOCAL_CONF = resource_filename(Requirement.parse('torspider'),"local.conf")
 SEEDS_CONF = resource_filename(Requirement.parse('torspider'),"seeds.conf")
+PLUGINS_CONF = resource_filename(Requirement.parse('torspider'),"plugins.conf")
 
 from .worker import Worker, add_task
 from .utils import iter_file
@@ -26,30 +27,27 @@ define("connect_timeout", type=float, default=10.0, help='Connect timeout')
 define("request_timeout", type=float, default=20.0, help='Request timeout')
 define("validate_cert", type=bool, default=False, help='Validate certificate')
 define("max_pages", type=int, default=100, help='Maximum pages, 0 - no limit')
-define("clear_tasks", type=bool, default=True, help='Clear existing tasks queue')
+define("clear_tasks", type=bool, default=True, help='Clear existing data')
 define("workers", type=int, default=10, help='Workers count')
 define("follow_outer_links", type=bool, default=True, help='Follow outer links')
 define("follow_inner_links", type=bool, default=False, help='Follow inner links')
 
 io_loop = IOLoop.current()
+enabled_plugins = []
 
-def _process_entry_point(point_name):
+def process_entry_point(point_name, *args, **kwargs):
     for entry_point in pkg_resources.iter_entry_points(point_name):
-        f = entry_point.load()
-        f()
-
-def init_plugins():
-    _process_entry_point('torspider_init')
-
-def done_plugins():
-    _process_entry_point('torspider_done')
-
+        if options.entry_point.name in enabled_plugins:
+            f = entry_point.load()
+            f(*args, **kwargs)
 
 async def main():
     redis = tasks.RedisClient()
+
     consumers = {
         ep.name: ep.load()
         for ep in pkg_resources.iter_entry_points('torspider_consume')
+        if ep.name in enabled_plugins
     }
 
     if options.clear_tasks:
@@ -76,9 +74,12 @@ async def main():
 def run_main():
     parse_config_file(DEFAULT_CONF)
     parse_config_file(LOCAL_CONF)
+    parse_config_file(PLUGINS_CONF)
     parse_command_line()
+
     tasks.RedisClient.setup()
-    init_plugins()
+    enabled_plugins.extend([ k for (k, v) in options.items() if v ])
+    process_entry_point('torspider_init')
     try:
         io_loop.run_sync(main)
     except KeyboardInterrupt:
@@ -86,7 +87,7 @@ def run_main():
     except Exception as ex:
         logging.error(ex, exc_info=True)
     finally:
-        done_plugins()
+        process_entry_point('torspider_done')
 
 
 if __name__ == "__main__":
