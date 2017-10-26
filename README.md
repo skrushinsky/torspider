@@ -27,7 +27,7 @@ $ python setup.py install develop
 
 Linux installation may require additional steps for building
 [pycurl](http://pycurl.io) with SSL support. If so, you may find more convenient
-to install dependencies before running **setup.py** :
+to install the dependencies before running **setup.py** :
 
 ```
 $ pip install -r requirements.txt
@@ -39,7 +39,7 @@ then repeat the above command.
 
 #### Testing
 
-Run unit tests:
+To run all the unit tests:
 
 ```
 $ python -m unittest discover tests/ -p test_*.py
@@ -48,13 +48,17 @@ $ python -m unittest discover tests/ -p test_*.py
 #### Configuration
 
 Default configuration file is named **default.conf**. To override any of its
-predefined settings, put the same key with desired value to **local.conf** or
-provide an alternative via command line option. The rule is simple:
+predefined settings, put desired key/value pair to **local.conf** or
+provide an alternative via command-line option. The rule is simple:
 
 * Options from **local.conf** override those from  **default.conf**.
 * Options from command line override those from both the configuration files.
 
-To see all available options, run:
+To see all available command-line options, run:
+
+See also [Options Table](https://github.com/skrushinsky/torspider/wiki/Options)
+at Wiki.
+
 
 ```
 $ torspider --help
