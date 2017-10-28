@@ -123,10 +123,9 @@ See [Wiki article](https://github.com/skrushinsky/torspider/wiki/Extending).
 
 - - -
 
-## TODOs:
+## TODOs
 
 1. More configurable settings.
-1. Throttling: length of the tasks queue should not grow too quickly.
 1. Black list of domains / addresses.
 1. Pauses between succedent request to the same domain.
 1. Additional content types.
