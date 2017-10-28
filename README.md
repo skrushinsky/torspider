@@ -115,8 +115,8 @@ $ torspider --clear-tasks
 
 The program is *pluggable*. Briefly speaking, its primary responsibility is to
 traverse the network following a set of rules. **How to use the results** is
-entirely up to plugins. In one user scenario each page must be parsed and saved
-to a database. Some other scenario requires extracting some special information
+entirely up to plugins. In one scenario each page must be parsed and saved
+to a database. Another scenario requires extracting some special information
 from the page, such as stock prices.
 
 See [Wiki article](https://github.com/skrushinsky/torspider/wiki/Extending).
@@ -125,7 +125,8 @@ See [Wiki article](https://github.com/skrushinsky/torspider/wiki/Extending).
 
 ## TODOs
 
-1. More configurable settings.
+1. More entry points for plugins, e.g. let them control where to go from a page.
+1. More configurable settings, at the first place: request headers.
 1. Black list of domains / addresses.
 1. Pauses between succedent request to the same domain.
 1. Additional content types.
