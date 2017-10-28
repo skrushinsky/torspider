@@ -31,6 +31,8 @@ define("clear_tasks", type=bool, default=True, help='Clear existing data')
 define("workers", type=int, default=10, help='Workers count')
 define("follow_outer_links", type=bool, default=True, help='Follow outer links')
 define("follow_inner_links", type=bool, default=False, help='Follow inner links')
+define("throttling_ratio", type=float, default=0.9,
+       help='minimal completed / pending tasks ratio, 0 -- no throttling')
 
 io_loop = IOLoop.current()
 enabled_plugins = []

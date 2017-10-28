@@ -75,6 +75,12 @@ class RedisClient:
         return await gen.Task(pipe.execute)
 
     @with_redis_pool
+    async def pending_count(self, client=None):
+        """Pending tasks count."""
+        return await gen.Task(client.scard, self.pending_s)
+
+
+    @with_redis_pool
     async def get_task(self, client=None):
         """Wait for a new task in PENDING queue. When a task is available,
         pop it from the queue, then move from PENDING to WORKING set.

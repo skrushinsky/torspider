@@ -167,6 +167,19 @@ class PassedCountCase(TaskCase):
         count = yield self.client.passed_count()
         self.assertEqual(2, count)
 
+class PendingCountCase(TaskCase):
+    def setUp(self):
+        super(PendingCountCase, self).setUp()
+        self.task = 'http://tornadoweb.org/'
+        f = partial(self.client.put_task, self.task)
+        self.io_loop.run_sync(f)
+
+    @testing.gen_test
+    def test_count(self):
+        count = yield self.client.pending_count()
+        self.assertEqual(1, count)
+
+
 
 class KnownTaskCase(TaskCase):
     """Make sure the a registered task is 'known' in any state."""
@@ -223,6 +236,7 @@ def all():
     test_suite.addTest(unittest.makeSuite(RegisterSuccessCase))
     test_suite.addTest(unittest.makeSuite(RegisterFailureCase))
     test_suite.addTest(unittest.makeSuite(PassedCountCase))
+    test_suite.addTest(unittest.makeSuite(PendingCountCase))
     test_suite.addTest(unittest.makeSuite(KnownTaskCase))
     test_suite.addTest(unittest.makeSuite(UnknownTaskCase))
     return test_suite
