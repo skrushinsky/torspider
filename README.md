@@ -70,7 +70,7 @@ To provide initial URLs, edit **seeds.conf** file. If you do not provide any
 were no previous sessions, or you start torspider with **--clear-tasks** option,
 there won't be any tasks for workers.
 
-##### Enabling Plugins
+##### Plugins
 
 **plugins.json** file contains list of available plugins. To disable a plugin,
 set its `enabled` property to *false*:
@@ -118,6 +118,10 @@ to a database. Another scenario requires extracting some special information
 from the page, such as stock prices.
 
 See [Wiki article](https://github.com/skrushinsky/torspider/wiki/Extending).
+
+### Official plugins:
+
+* [torspider-mongo](/skrushinsky/torspider-mongo)
 
 - - -
 
