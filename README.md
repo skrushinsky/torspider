@@ -73,9 +73,7 @@ there won't be any tasks for workers.
 ##### Plugins
 
 **plugins.json** file contains list of available plugins. To disable a plugin,
-set its `enabled` property to *false*:
-
-**config** hash contains plugin-specific configuration data.
+set its `enabled` property to *false*. **config** hash contains plugin-specific configuration data.
 
 
 ### Running
