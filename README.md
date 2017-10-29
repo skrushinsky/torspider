@@ -72,12 +72,10 @@ there won't be any tasks for workers.
 
 ##### Enabling Plugins
 
-**plugins.conf** file contains list of available plugins. To disable a plugin,
-comment it out with **#** symbol, like that:
+**plugins.json** file contains list of available plugins. To disable a plugin,
+set its `enabled` property to *false*:
 
-```
-# mongo_client
-```
+**config** hash contains plugin-specific configuration data.
 
 
 ### Running
