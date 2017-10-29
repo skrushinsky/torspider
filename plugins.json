@@ -1,0 +1,8 @@
+{
+    "mongo_client": {
+        "enabled": true,
+        "config": {
+            "db": "mongodb://localhost:27017/torspider"
+        }
+    }
+}

@@ -8,13 +8,13 @@ from tornado.options import define, options, parse_command_line, parse_config_fi
 from tornado.log import enable_pretty_logging
 from tornado.ioloop import IOLoop
 import pkg_resources
-from . import tasks
+from . import tasks, utils
 
 from pkg_resources import Requirement, resource_filename
 DEFAULT_CONF = resource_filename(Requirement.parse('torspider'),"default.conf")
 LOCAL_CONF = resource_filename(Requirement.parse('torspider'),"local.conf")
 SEEDS_CONF = resource_filename(Requirement.parse('torspider'),"seeds.conf")
-PLUGINS_CONF = resource_filename(Requirement.parse('torspider'),"plugins.conf")
+PLUGINS_JSON = resource_filename(Requirement.parse('torspider'),"plugins.json")
 
 from .worker import Worker, add_task
 from .utils import iter_file
@@ -35,22 +35,25 @@ define("throttling_ratio", type=float, default=0.9,
        help='minimal completed / pending tasks ratio, 0 -- no throttling')
 
 io_loop = IOLoop.current()
-enabled_plugins = []
+plugins = {}
 
-def process_entry_point(point_name, *args, **kwargs):
+def process_entry_point(point_name):
+    pl_names = plugins.keys()
     for entry_point in pkg_resources.iter_entry_points(point_name):
-        if entry_point.name in enabled_plugins:
+        name = entry_point.name
+        if name in pl_names:
             f = entry_point.load()
-            f(*args, **kwargs)
+            f(**plugins[name])
 
 async def main():
     tasks.RedisClient.setup()
     redis = tasks.RedisClient()
 
+    pl_names = plugins.keys()
     consumers = {
         ep.name: ep.load()
         for ep in pkg_resources.iter_entry_points('torspider_consume')
-        if ep.name in enabled_plugins
+        if ep.name in pl_names
     }
 
     if options.clear_tasks:
@@ -79,8 +82,8 @@ def run_main():
     parse_config_file(LOCAL_CONF)
     parse_command_line()
 
-    for plugin_name in iter_file(PLUGINS_CONF):
-        enabled_plugins.append(plugin_name)
+    js = utils.read_json_config(PLUGINS_JSON)
+    plugins.update({k: v['config'] for k, v in js.items() if v['enabled']})
 
     process_entry_point('torspider_init')
     try:

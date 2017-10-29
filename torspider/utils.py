@@ -1,4 +1,5 @@
 import os
+import json
 
 def ensure_dir(directory):
     '''If directories structure does not exist, create them.'''
@@ -16,3 +17,8 @@ def iter_file(path):
             if not line or line.startswith('#'):
                 continue
             yield line
+
+def read_json_config(path):
+    with open(path) as json_data_file:
+        cfg = json.load(json_data_file)
+    return cfg
